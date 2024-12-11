@@ -5,20 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Full-Screen Video</title>
     <style>
-        body {
+        /* Remove default margins and padding */
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        body {
             background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden; /* Prevent scrolling */
+            margin: 0;
         }
 
         iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             border: none;
-            width: 100vw; /* Full viewport width */
-            height: 100vh; /* Full viewport height */
         }
     </style>
 </head>
