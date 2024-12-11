@@ -3,14 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Streaming</title>
+    <title>My Video Streaming Site</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Welcome to My Video Streaming Site</h1>
-    <div id="video-gallery">
-        <a href="video.html?video=video1.mp4">Video 1</a>
-        <a href="video.html?video=video2.mp4">Video 2</a>
-    </div>
+
+    <h2>Video 1</h2>
+    <video controls width="640">
+        <source src="https://drive.google.com/uc?export=view&id=YOUR_FILE_ID_1" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <h2>Video 2</h2>
+    <iframe
+        src="https://drive.google.com/file/d/YOUR_FILE_ID_2/preview"
+        width="640" 
+        height="360" 
+        allowfullscreen>
+    </iframe>
 </body>
 </html>
