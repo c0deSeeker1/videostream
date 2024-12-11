@@ -3,22 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Video</title>
+    <title>My Video Streaming Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        video, iframe {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Video Player</h1>
+    <h1>Welcome to My Video Streaming Site</h1>
+
+    <h2>Video 1</h2>
+
+    <!-- Video Player -->
     <video controls width="640">
-        <source id="video-source" src="" type="video/mp4">
+        <source src="https://drive.google.com/uc?export=view&id=1m1E1QfDznLniBEkapwanUuCSkgMmhbvp" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const video = urlParams.get('video');
-        if (video) {
-            document.getElementById('video-source').src = `videos/${video}`;
-        } else {
-            document.body.innerHTML = '<p>Video not found</p>';
-        }
-    </script>
+
+    <p>Or view using an iframe:</p>
+
+    <!-- Embedded Video -->
+    <iframe 
+        src="https://drive.google.com/file/d/1m1E1QfDznLniBEkapwanUuCSkgMmhbvp/preview" 
+        width="640" 
+        height="360" 
+        allowfullscreen>
+    </iframe>
 </body>
 </html>
