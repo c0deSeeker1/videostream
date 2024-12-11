@@ -3,37 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Video Streaming Site</title>
-    <link rel="stylesheet" href="style.css">
+    <title>My Video</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        iframe {
+            border: none;
+            width: 80%;
+            height: 80%;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Video Streaming Site</h1>
-    </header>
-
-    <main>
-        <section>
-            <h2>Video 1</h2>
-            <!-- Direct Video Playback -->
-            <video controls width="640">
-                <source src="https://drive.google.com/uc?export=view&id=1m1E1QfDznLniBEkapwanUuCSkgMmhbvp" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-
-            <p>Or view using an iframe:</p>
-
-            <!-- Embedded Video -->
-            <iframe 
-                src="https://drive.google.com/file/d/1m1E1QfDznLniBEkapwanUuCSkgMmhbvp/preview" 
-                width="640" 
-                height="360" 
-                allowfullscreen>
-            </iframe>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 My Video Streaming Site. All rights reserved.</p>
-    </footer>
+    <!-- Embedded Video -->
+    <iframe 
+        src="https://drive.google.com/file/d/1m1E1QfDznLniBEkapwanUuCSkgMmhbvp/preview" 
+        allowfullscreen>
+    </iframe>
 </body>
 </html>
