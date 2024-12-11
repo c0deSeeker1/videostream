@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full-Screen Video</title>
+    <title>Full-Screen Video with Controls</title>
     <style>
         /* Remove default margin and padding */
         * {
@@ -12,10 +12,9 @@
             box-sizing: border-box;
         }
 
-        /* Full height for HTML and body */
         html, body {
             height: 100%;
-            overflow: hidden;
+            overflow: hidden; /* Prevent scrolling */
         }
 
         body {
@@ -24,6 +23,7 @@
             justify-content: center;
             align-items: center;
             margin: 0;
+            position: relative;
         }
 
         /* Ensure the iframe fills the entire screen */
@@ -36,10 +36,40 @@
             border: none;
         }
 
-        /* Full viewport width/height for responsiveness */
-        @media (orientation: landscape) {
-            iframe {
-                object-fit: cover; /* Ensures the video covers the whole screen */
+        /* Buttons to control fast-forward and rewind */
+        .control-button {
+            position: absolute;
+            top: 50%;  /* Position vertically in the middle */
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent background */
+            border: none;
+            color: #000;
+            font-size: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Fast-forward button (right side) */
+        #fast-forward {
+            right: 20px; /* Position it on the right side */
+        }
+
+        /* Rewind button (left side) */
+        #rewind {
+            left: 20px; /* Position it on the left side */
+        }
+
+        /* Make the buttons responsive */
+        @media (max-width: 600px) {
+            .control-button {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
             }
         }
     </style>
@@ -47,9 +77,29 @@
 <body>
     <!-- Full-Screen Embedded Video -->
     <iframe 
+        id="video-player"
         src="https://drive.google.com/file/d/1m1E1QfDznLniBEkapwanUuCSkgMmhbvp/preview" 
         allowfullscreen
         frameborder="0">
     </iframe>
+
+    <!-- Fast-Forward Button -->
+    <button id="fast-forward" class="control-button">▶</button>
+    <!-- Rewind Button -->
+    <button id="rewind" class="control-button">◁</button>
+
+    <script>
+        const videoPlayer = document.getElementById("video-player");
+
+        // Fast-forward function (10 seconds ahead)
+        document.getElementById("fast-forward").addEventListener("click", function() {
+            videoPlayer.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[videoPlayer.contentWindow.getCurrentTime() + 10]}', '*');
+        });
+
+        // Rewind function (10 seconds back)
+        document.getElementById("rewind").addEventListener("click", function() {
+            videoPlayer.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[videoPlayer.contentWindow.getCurrentTime() - 10]}', '*');
+        });
+    </script>
 </body>
 </html>
