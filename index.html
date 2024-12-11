@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Video</title>
+    <title>Watch Video</title>
     <style>
         body {
             margin: 0;
@@ -16,8 +16,9 @@
 
         iframe {
             border: none;
-            width: 80%;
-            height: 80%;
+            width: 100%;
+            max-width: 640px; /* Restrict the maximum width for large screens */
+            aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
         }
     </style>
 </head>
