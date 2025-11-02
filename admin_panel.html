@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<style>
+body{font-family:Arial;padding:20px;background:#f5f5f7;}
+form{background:#fff;padding:20px;border-radius:6px;max-width:400px;margin:auto;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+input{width:100%;padding:8px;margin:8px 0;border:1px solid #ccc;border-radius:4px;}
+button{padding:10px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;width:100%;}
+a{display:block;text-align:right;margin-top:10px;color:#007bff;text-decoration:none;}
+#status{margin-top:10px;text-align:center;color:red;}
+</style>
+</head>
+<body>
+
+<h2 style="text-align:center;">Admin Login</h2>
+<form id="loginForm">
+  <input type="text" id="username" placeholder="Username" value="admin" required>
+  <input type="password" id="password" placeholder="Password" value="admin" required>
+  <button type="button" id="loginBtn">Login</button>
+  <a href="#" id="forgotBtn">Forgot Password?</a>
+  <div id="status"></div>
+</form>
+
+<script>
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const status=document.getElementById("status");
+
+// Login
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  const username=document.getElementById("username").value.trim();
+  const password=document.getElementById("password").value.trim();
+  fetch(WEB_APP_URL,{
+    method:"POST",
+    body:new URLSearchParams({action:"login",username, password})
+  })
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success) window.location.href="admin_panel.html"; // redirect to main admin
+    else status.textContent="Incorrect username or password.";
+  })
+  .catch(e=>status.textContent="Error connecting to server.");
+});
+
+// Forgot password
+document.getElementById("forgotBtn").addEventListener("click",()=>{
+  fetch(WEB_APP_URL,{
+    method:"POST",
+    body:new URLSearchParams({action:"forgot"})
+  })
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success) status.textContent="Password sent to your email.";
+    else status.textContent="Error sending email.";
+  });
+});
+</script>
+
+</body>
+</html>
+
+
