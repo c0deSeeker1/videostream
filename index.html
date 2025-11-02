@@ -19,9 +19,8 @@ h1{font-size:24px;margin-bottom:10px;}
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
 const listContainer = document.getElementById("videoList");
 
-// This function will be called by JSONP from Apps Script
+// Callback for JSONP
 function showVideos(data){
-  window.json = data; // save globally if needed
   if(!data || data.length === 0){
     listContainer.innerHTML = "<p>No videos uploaded yet.</p>";
     return;
@@ -42,7 +41,7 @@ function showVideos(data){
 
 // Load JSONP via script tag
 const script = document.createElement("script");
-script.src = WEB_APP_URL + "?callback=showVideos";
+script.src = WEB_APP_URL + "?callback=showVideos&_=" + new Date().getTime();
 document.body.appendChild(script);
 </script>
 </body>
