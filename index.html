@@ -16,33 +16,36 @@ h1{font-size:24px;margin-bottom:10px;}
 <a href="admin.html" id="adminLink">Admin</a>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
-const listContainer = document.getElementById("videoList");
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const listContainer=document.getElementById("videoList");
 
-// Callback for JSONP
 function showVideos(data){
-  if(!data || data.length === 0){
-    listContainer.innerHTML = "<p>No videos uploaded yet.</p>";
-    return;
-  }
-  listContainer.innerHTML = "";
+  if(!data||data.length===0){ listContainer.innerHTML="<p>No videos uploaded yet.</p>"; return; }
+  listContainer.innerHTML="";
   data.forEach(v=>{
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <h3>${v.title}</h3>
+    const div=document.createElement("div");
+    div.innerHTML=`<h3>${v.title}</h3>
       <video width="480" controls>
         <source src="${v.direct_url}" type="video/mp4">
         Your browser does not support HTML5 video.
-      </video>
-    `;
+      </video>`;
     listContainer.appendChild(div);
   });
 }
 
-// Load JSONP via script tag
-const script = document.createElement("script");
-script.src = WEB_APP_URL + "?callback=showVideos&_=" + new Date().getTime();
-document.body.appendChild(script);
+function loadVideos(){
+  const cb="cb"+new Date().getTime();
+  window[cb]=showVideos;
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
+  document.body.appendChild(script);
+}
+
+// Initial load
+loadVideos();
+
+// Auto-refresh every 5 seconds
+setInterval(loadVideos,5000);
 </script>
 </body>
 </html>
