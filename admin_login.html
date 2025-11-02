@@ -4,57 +4,93 @@
 <meta charset="UTF-8">
 <title>Admin Login</title>
 <style>
-body{font-family:Arial;padding:20px;background:#f5f5f7;}
-form{background:#fff;padding:20px;border-radius:6px;max-width:400px;margin:auto;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-input{width:100%;padding:8px;margin:8px 0;border:1px solid #ccc;border-radius:4px;}
-button{padding:10px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;width:100%;}
-a{display:block;text-align:right;margin-top:10px;color:#007bff;text-decoration:none;}
-#status{margin-top:10px;text-align:center;color:red;}
+body{font-family:Arial;background:#f5f5f7;padding:20px;display:flex;justify-content:center;align-items:center;height:100vh;}
+form{background:#fff;padding:20px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:350px;}
+h2{text-align:center;margin-top:0;}
+.form-row{margin-bottom:15px;display:flex;flex-direction:column;}
+label{font-weight:bold;margin-bottom:5px;}
+input{padding:8px 10px;border:1px solid #ccc;border-radius:4px;width:100%;}
+button{width:100%;padding:10px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+button:hover{background:#0056b3;}
+.password-container{position:relative;}
+.eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:#666;}
+#status{margin-top:10px;text-align:center;}
+.forgot{margin-top:5px;text-align:right;}
+.forgot a{text-decoration:none;color:#007bff;}
+.forgot a:hover{color:#0056b3;}
 </style>
 </head>
 <body>
 
-<h2 style="text-align:center;">Admin Login</h2>
 <form id="loginForm">
-  <input type="text" id="username" placeholder="Username" value="admin" required>
-  <input type="password" id="password" placeholder="Password" value="admin" required>
-  <button type="button" id="loginBtn">Login</button>
-  <a href="#" id="forgotBtn">Forgot Password?</a>
-  <div id="status"></div>
+<h2>Admin Login</h2>
+<div class="form-row">
+  <label>Username:</label>
+  <input type="text" id="username" placeholder="Enter username" value="">
+</div>
+<div class="form-row">
+  <label>Password:</label>
+  <div class="password-container">
+    <input type="password" id="password" placeholder="Enter password" value="">
+    <span class="eye" id="eyePass">&#128065;</span>
+  </div>
+</div>
+<div class="forgot"><a href="#" id="forgotPass">Forgot Password?</a></div>
+<button type="button" id="loginBtn">Login</button>
+<div id="status"></div>
 </form>
 
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
-const status=document.getElementById("status");
 
-// Login
-document.getElementById("loginBtn").addEventListener("click",()=>{
-  const username=document.getElementById("username").value.trim();
-  const password=document.getElementById("password").value.trim();
+// Eye icon long press to unmask password
+const passwordInput = document.getElementById("password");
+const eye = document.getElementById("eyePass");
+eye.onmousedown = ()=> passwordInput.type="text";
+eye.onmouseup = eye.onmouseleave = ()=> passwordInput.type="password";
+
+// Login functionality
+document.getElementById("loginBtn").onclick = ()=>{
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const status = document.getElementById("status");
+
+  if(username !== "admin"){
+    status.innerHTML="<span style='color:red'>Invalid username</span>";
+    return;
+  }
+  if(!password){
+    status.innerHTML="<span style='color:red'>Enter password</span>";
+    return;
+  }
+
   fetch(WEB_APP_URL,{
     method:"POST",
-    body:new URLSearchParams({action:"login",username, password})
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"loginCheck",password})
   })
-  .then(res=>res.json())
-  .then(r=>{
-    if(r.success) window.location.href="admin_panel.html"; // redirect to main admin
-    else status.textContent="Incorrect username or password.";
-  })
-  .catch(e=>status.textContent="Error connecting to server.");
-});
+  .then(r=>r.json())
+  .then(j=>{
+    if(j.success){
+      window.location.href="admin_panel.html";
+    } else {
+      status.innerHTML="<span style='color:red'>Wrong password</span>";
+    }
+  });
+};
 
 // Forgot password
-document.getElementById("forgotBtn").addEventListener("click",()=>{
+document.getElementById("forgotPass").onclick = ()=>{
   fetch(WEB_APP_URL,{
     method:"POST",
-    body:new URLSearchParams({action:"forgot"})
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"forgotPass"})
   })
-  .then(res=>res.json())
-  .then(r=>{
-    if(r.success) status.textContent="Password sent to your email.";
-    else status.textContent="Error sending email.";
+  .then(r=>r.json())
+  .then(j=>{
+    alert("Password request sent. Check your email.");
   });
-});
+};
 </script>
 
 </body>
