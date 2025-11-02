@@ -5,17 +5,34 @@
 <title>Admin - Add Video</title>
 <style>
 body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f7;}
-input,button{padding:6px 10px;margin:5px 0;width:100%;}
-button{background:#28a745;color:#fff;border:none;border-radius:4px;}
+.tab{
+  margin-bottom:20px;
+}
+.tab a{
+  padding:8px 16px;
+  background:#007bff;
+  color:#fff;
+  text-decoration:none;
+  border-radius:4px;
+  margin-right:10px;
+}
+input,button{padding:6px 10px;margin:5px 0;width:75%;}
+button{background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;}
 #status{margin-top:10px;}
 </style>
 </head>
 <body>
+
 <h1>Admin - Add Video</h1>
+
+<div class="tab">
+  <a href="index.html">Viewer Page</a>
+</div>
+
 <label>Video Title:</label>
-<input type="text" id="title" placeholder="Video Title">
+<input type="text" id="title" placeholder="Video Title"><br>
 <label>Video URL (direct link):</label>
-<input type="text" id="url" placeholder="Video URL">
+<input type="text" id="url" placeholder="Video URL"><br>
 
 <button id="addBtn">Add Video</button>
 <div id="status"></div>
@@ -33,14 +50,15 @@ document.getElementById("addBtn").addEventListener("click", ()=>{
     return;
   }
 
-  // Add video by opening new script tag (bypasses CORS)
-  const script = document.createElement("script");
+  // JSONP callback
   const callbackName = "cb" + new Date().getTime();
   window[callbackName] = function(response){
     status.innerHTML = "<span style='color:green'>Video added successfully!</span>";
     document.body.removeChild(script);
   };
-  script.src = WEB_APP_URL + "?title=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(url) + "&callback=" + callbackName;
+
+  const script = document.createElement("script");
+  script.src = WEB_APP_URL + "?title=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(url) + "&callback=" + callbackName + "&_=" + new Date().getTime();
   document.body.appendChild(script);
 });
 </script>
