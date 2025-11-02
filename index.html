@@ -4,38 +4,45 @@
 <meta charset="UTF-8">
 <title>Video Viewer</title>
 <style>
-body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f7;}
-h1{font-size:24px;margin-bottom:10px;}
-#videoList div{margin:10px 0;padding:10px;background:#fff;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-#adminLink{position:fixed;top:10px;right:10px;padding:6px 12px;background:#007bff;color:#fff;border-radius:4px;text-decoration:none;}
+body{font-family:Arial;background:#f5f5f7;padding:20px;}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+h1{margin:0;}
+a.admin-link{padding:6px 12px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;}
+a.admin-link:hover{background:#0056b3;}
+.video-card{background:#fff;padding:10px;margin:10px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+video{width:100%;max-width:600px;border-radius:4px;}
 </style>
 </head>
 <body>
-<h1>Video Viewer</h1>
+
+<header>
+  <h1>Video Viewer</h1>
+  <a href="admin_login.html" class="admin-link">Admin Login</a>
+</header>
+
 <div id="videoList">Loading videos...</div>
-<a href="admin.html" id="adminLink">Admin</a>
 
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
-const listContainer=document.getElementById("videoList");
+const videoListDiv=document.getElementById("videoList");
 
-function showVideos(data){
-  if(!data||data.length===0){ listContainer.innerHTML="<p>No videos uploaded yet.</p>"; return; }
-  listContainer.innerHTML="";
-  data.forEach(v=>{
-    const div=document.createElement("div");
-    div.innerHTML=`<h3>${v.title}</h3>
-      <video width="480" controls>
-        <source src="${v.direct_url}" type="video/mp4">
-        Your browser does not support HTML5 video.
-      </video>`;
-    listContainer.appendChild(div);
-  });
-}
-
+// JSONP callback
 function loadVideos(){
   const cb="cb"+new Date().getTime();
-  window[cb]=showVideos;
+  window[cb]=function(data){
+    if(!data || data.length===0){ videoListDiv.innerHTML="<p>No videos uploaded yet.</p>"; return; }
+    let html="";
+    data.forEach(v=>{
+      html+=`<div class="video-card">
+        <h3>${v.title}</h3>
+        <video controls>
+          <source src="${v.direct_url}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>`;
+    });
+    videoListDiv.innerHTML=html;
+  };
   const script=document.createElement("script");
   script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
@@ -43,9 +50,7 @@ function loadVideos(){
 
 // Initial load
 loadVideos();
-
-// Auto-refresh every 5 seconds
-setInterval(loadVideos,5000);
+setInterval(loadVideos,10000); // auto-refresh every 10s
 </script>
 </body>
 </html>
