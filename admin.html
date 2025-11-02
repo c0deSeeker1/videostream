@@ -31,7 +31,7 @@ button{background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointe
 
 <label>Video Title:</label>
 <input type="text" id="title" placeholder="Video Title"><br>
-<label>Video URL (direct link):</label>
+<label>Video URL (share link):</label>
 <input type="text" id="url" placeholder="Video URL"><br>
 
 <button id="addBtn">Add Video</button>
@@ -41,14 +41,34 @@ button{background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointe
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
 const status = document.getElementById("status");
 
+// Convert shared links to direct playable URLs
+function convertToDirectLink(url){
+  // Google Drive
+  if(url.includes("drive.google.com")){
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if(match && match[1]){
+      return "https://drive.google.com/uc?export=download&id=" + match[1];
+    }
+  }
+  // Dropbox
+  if(url.includes("dropbox.com")){
+    return url.replace("?dl=0","?dl=1");
+  }
+  // Otherwise return original
+  return url;
+}
+
 document.getElementById("addBtn").addEventListener("click", ()=>{
-  const title = document.getElementById("title").value.trim();
-  const url = document.getElementById("url").value.trim();
+  let title = document.getElementById("title").value.trim();
+  let url = document.getElementById("url").value.trim();
 
   if(!title || !url){
     status.innerHTML = "<span style='color:red'>Please enter both title and URL.</span>";
     return;
   }
+
+  // Convert to direct link
+  url = convertToDirectLink(url);
 
   // JSONP callback
   const callbackName = "cb" + new Date().getTime();
@@ -58,7 +78,11 @@ document.getElementById("addBtn").addEventListener("click", ()=>{
   };
 
   const script = document.createElement("script");
-  script.src = WEB_APP_URL + "?title=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(url) + "&callback=" + callbackName + "&_=" + new Date().getTime();
+  script.src = WEB_APP_URL
+    + "?title=" + encodeURIComponent(title)
+    + "&url=" + encodeURIComponent(url)
+    + "&callback=" + callbackName
+    + "&_=" + new Date().getTime();
   document.body.appendChild(script);
 });
 </script>
