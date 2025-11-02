@@ -43,7 +43,7 @@ addBtn.addEventListener('click', async ()=>{
   try{
     const fetchUrl = `${WEB_APP_URL}?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
     const resp = await fetch(fetchUrl);
-    const data = await resp.json();
+    const data = await resp.json(); // ✅ now valid JSON
     if(data.status==="success"){
       alert("Saved! Video added.");
       titleInput.value=''; urlInput.value='';
