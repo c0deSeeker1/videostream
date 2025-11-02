@@ -4,21 +4,72 @@
 <meta charset="UTF-8">
 <title>Admin - Manage Videos</title>
 <style>
-body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f7;}
-.tab{margin-bottom:20px;}
-.tab a{padding:8px 16px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;margin-right:10px;}
-input{padding:6px 10px;margin:5px 0;width:75%;}
-button{padding:6px 10px;margin:5px 0;border:none;border-radius:4px;cursor:pointer;}
-#addBtn{background:#28a745;color:#fff;}
-.editBtn{background:#ffc107;color:#000;margin-right:5px;}
-.deleteBtn{background:#dc3545;color:#fff;}
-#status{margin-top:10px;}
-table{width:100%;border-collapse:collapse;margin-top:20px;}
-th,td{border:1px solid #ccc;padding:8px;text-align:left;}
-th{background:#eee;}
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f5f5f7;
+}
+.tab {
+  margin-bottom: 20px;
+}
+.tab a {
+  padding: 8px 16px;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+form {
+  background: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  max-width: 600px;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.form-row label {
+  width: 120px;
+  font-weight: bold;
+}
+.form-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+#addBtn { background: #28a745; color: #fff; }
+.editBtn { background: #ffc107; color: #000; margin-right: 5px; }
+.deleteBtn { background: #dc3545; color: #fff; }
+#status { margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+th { background: #eee; }
 </style>
 </head>
 <body>
+
+<script>
+// Password protection
+const password = "admin123"; // change your password here
+let entered = prompt("Enter admin password:");
+if(entered !== password){
+  alert("Incorrect password. Access denied.");
+  document.body.innerHTML = "<h2 style='color:red;'>Access Denied</h2>";
+  throw new Error("Access denied");
+}
+</script>
 
 <h1>Admin - Manage Videos</h1>
 <div class="tab">
@@ -26,11 +77,17 @@ th{background:#eee;}
 </div>
 
 <h3>Add New Video</h3>
-<label>Video Title:</label>
-<input type="text" id="title" placeholder="Video Title"><br>
-<label>Video URL (share link):</label>
-<input type="text" id="url" placeholder="Video URL"><br>
-<button id="addBtn">Add Video</button>
+<form id="addForm">
+  <div class="form-row">
+    <label for="title">Video Title:</label>
+    <input type="text" id="title" placeholder="Video Title">
+  </div>
+  <div class="form-row">
+    <label for="url">Video URL:</label>
+    <input type="text" id="url" placeholder="Google Drive or Dropbox share link">
+  </div>
+  <button type="button" id="addBtn">Add Video</button>
+</form>
 <div id="status"></div>
 
 <h3>Existing Videos</h3>
@@ -41,6 +98,7 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpq
 const status = document.getElementById("status");
 const videoListDiv = document.getElementById("videoList");
 
+// Convert share link to direct link
 function convertToDirectLink(url){
   if(url.includes("drive.google.com")){
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -52,12 +110,17 @@ function convertToDirectLink(url){
 
 // Add video
 document.getElementById("addBtn").addEventListener("click", ()=>{
-  let title=document.getElementById("title").value.trim();
-  let url=document.getElementById("url").value.trim();
-  if(!title||!url){ status.innerHTML="<span style='color:red'>Enter title & URL.</span>"; return; }
-  url=convertToDirectLink(url);
+  let title = document.getElementById("title").value.trim();
+  let url = document.getElementById("url").value.trim();
+  if(!title || !url){ status.innerHTML="<span style='color:red'>Enter both title and URL.</span>"; return; }
+  url = convertToDirectLink(url);
   const cb="cb"+new Date().getTime();
-  window[cb]=function(r){ status.innerHTML="<span style='color:green'>Video added!</span>"; loadVideos(); document.body.removeChild(script); };
+  window[cb]=function(r){
+    status.innerHTML="<span style='color:green'>Video added!</span>";
+    document.getElementById("addForm").reset();
+    loadVideos();
+    document.body.removeChild(script);
+  };
   const script=document.createElement("script");
   script.src=WEB_APP_URL+"?title="+encodeURIComponent(title)+"&url="+encodeURIComponent(url)+"&callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
@@ -89,11 +152,11 @@ function loadVideos(){
 
 // Edit video
 function editVideo(id, oldTitle, oldUrl){
-  const newTitle=prompt("Edit Title:", oldTitle);
+  const newTitle = prompt("Edit Title:", oldTitle);
   if(newTitle===null) return;
-  const newUrlRaw=prompt("Edit Video URL:", oldUrl);
+  const newUrlRaw = prompt("Edit Video URL:", oldUrl);
   if(newUrlRaw===null) return;
-  const newUrl=convertToDirectLink(newUrlRaw);
+  const newUrl = convertToDirectLink(newUrlRaw);
   const cb="cb"+new Date().getTime();
   window[cb]=function(r){ status.innerHTML="<span style='color:green'>Video updated!</span>"; loadVideos(); document.body.removeChild(script); };
   const script=document.createElement("script");
@@ -114,8 +177,8 @@ function deleteVideo(id){
 // Initial load
 loadVideos();
 
-// Optional: Auto-refresh every 10s in admin too
-setInterval(loadVideos,10000);
+// Auto-refresh table every 10 seconds
+setInterval(loadVideos, 10000);
 </script>
 </body>
 </html>
