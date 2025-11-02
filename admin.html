@@ -18,19 +18,18 @@ button.secondary{background:#6c757d;margin-left:6px;}
 <body>
 <div class="wrap">
 <h1>Admin — Add Video</h1>
-<label for="title">Title (manual)</label>
+<label for="title">Title</label>
 <input id="title" type="text" placeholder="Enter title">
 <label for="url">Cloud URL (Google Drive, Dropbox, OneDrive)</label>
 <input id="url" type="url" placeholder="Paste link here">
 <div>
 <button id="addBtn">Add Video</button>
 </div>
-<div class="note">Tip: URL will be auto-converted to direct playable link if supported.</div>
 <div class="note"><a href="index.html">Go to Viewer Page</a></div>
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const WEB_APP_URL = "YOUR_WEB_APP_URL"; // ← replace with your Web App URL
 
 const titleInput = document.getElementById('title');
 const urlInput = document.getElementById('url');
@@ -39,22 +38,17 @@ const addBtn = document.getElementById('addBtn');
 addBtn.addEventListener('click', async ()=>{
   const title = titleInput.value.trim();
   const url = urlInput.value.trim();
-  if(!title){ alert("Please enter title"); titleInput.focus(); return; }
-  if(!url){ alert("Please paste URL"); urlInput.focus(); return; }
+  if(!title || !url){ alert("Please enter both title and URL"); return; }
 
   try{
-    const resp = await fetch(WEB_APP_URL, {
-      method:'POST',
-      body: JSON.stringify({title:title, original_url:url}),
-      headers:{'Content-Type':'application/json'}
-    });
+    const fetchUrl = `${WEB_APP_URL}?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+    const resp = await fetch(fetchUrl);
     const data = await resp.json();
     if(data.status==="success"){
-      alert("Saved! Video added to Sheet.");
-      titleInput.value = '';
-      urlInput.value = '';
+      alert("Saved! Video added.");
+      titleInput.value=''; urlInput.value='';
     } else {
-      alert("Error saving video.");
+      alert("Error saving video");
     }
   } catch(err){
     console.error(err);
