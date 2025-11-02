@@ -21,7 +21,6 @@ th{background:#eee;}
 <body>
 
 <h1>Admin - Manage Videos</h1>
-
 <div class="tab">
   <a href="index.html">Viewer Page</a>
 </div>
@@ -42,11 +41,10 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpq
 const status = document.getElementById("status");
 const videoListDiv = document.getElementById("videoList");
 
-// Convert shared links to direct playable URLs
 function convertToDirectLink(url){
   if(url.includes("drive.google.com")){
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if(match && match[1]) return "https://drive.google.com/uc?export=download&id=" + match[1];
+    if(match && match[1]) return "https://drive.google.com/uc?export=download&id="+match[1];
   }
   if(url.includes("dropbox.com")) return url.replace("?dl=0","?dl=1");
   return url;
@@ -54,25 +52,25 @@ function convertToDirectLink(url){
 
 // Add video
 document.getElementById("addBtn").addEventListener("click", ()=>{
-  let title = document.getElementById("title").value.trim();
-  let url = document.getElementById("url").value.trim();
-  if(!title || !url){ status.innerHTML="<span style='color:red'>Enter title & URL.</span>"; return; }
-  url = convertToDirectLink(url);
-  const cb = "cb" + new Date().getTime();
-  window[cb] = function(r){ status.innerHTML="<span style='color:green'>Video added!</span>"; loadVideos(); document.body.removeChild(script); };
-  const script = document.createElement("script");
-  script.src = WEB_APP_URL + "?title="+encodeURIComponent(title)+"&url="+encodeURIComponent(url)+"&callback="+cb+"&_="+new Date().getTime();
+  let title=document.getElementById("title").value.trim();
+  let url=document.getElementById("url").value.trim();
+  if(!title||!url){ status.innerHTML="<span style='color:red'>Enter title & URL.</span>"; return; }
+  url=convertToDirectLink(url);
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(r){ status.innerHTML="<span style='color:green'>Video added!</span>"; loadVideos(); document.body.removeChild(script); };
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?title="+encodeURIComponent(title)+"&url="+encodeURIComponent(url)+"&callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
 });
 
 // Load videos
 function loadVideos(){
-  const cb = "cb" + new Date().getTime();
-  window[cb] = function(data){
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(data){
     if(!data || data.length===0){ videoListDiv.innerHTML="<p>No videos yet.</p>"; return; }
-    let html = "<table><tr><th>Title</th><th>URL</th><th>Actions</th></tr>";
+    let html="<table><tr><th>Title</th><th>URL</th><th>Actions</th></tr>";
     data.forEach(v=>{
-      html += `<tr>
+      html+=`<tr>
         <td>${v.title}</td>
         <td><a href="${v.direct_url}" target="_blank">Play Link</a></td>
         <td>
@@ -81,40 +79,43 @@ function loadVideos(){
         </td>
       </tr>`;
     });
-    html += "</table>";
-    videoListDiv.innerHTML = html;
+    html+="</table>";
+    videoListDiv.innerHTML=html;
   };
-  const script = document.createElement("script");
-  script.src = WEB_APP_URL + "?callback="+cb+"&_="+new Date().getTime();
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
 }
 
 // Edit video
 function editVideo(id, oldTitle, oldUrl){
-  const newTitle = prompt("Edit Title:", oldTitle);
+  const newTitle=prompt("Edit Title:", oldTitle);
   if(newTitle===null) return;
-  const newUrlRaw = prompt("Edit Video URL:", oldUrl);
+  const newUrlRaw=prompt("Edit Video URL:", oldUrl);
   if(newUrlRaw===null) return;
-  const newUrl = convertToDirectLink(newUrlRaw);
-  const cb = "cb" + new Date().getTime();
-  window[cb] = function(r){ status.innerHTML="<span style='color:green'>Video updated!</span>"; loadVideos(); document.body.removeChild(script); };
-  const script = document.createElement("script");
-  script.src = WEB_APP_URL + "?editId="+id+"&title="+encodeURIComponent(newTitle)+"&url="+encodeURIComponent(newUrl)+"&callback="+cb+"&_="+new Date().getTime();
+  const newUrl=convertToDirectLink(newUrlRaw);
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(r){ status.innerHTML="<span style='color:green'>Video updated!</span>"; loadVideos(); document.body.removeChild(script); };
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?editId="+id+"&title="+encodeURIComponent(newTitle)+"&url="+encodeURIComponent(newUrl)+"&callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
 }
 
 // Delete video
 function deleteVideo(id){
   if(!confirm("Delete this video?")) return;
-  const cb = "cb" + new Date().getTime();
-  window[cb] = function(r){ status.innerHTML="<span style='color:red'>Video deleted!</span>"; loadVideos(); document.body.removeChild(script); };
-  const script = document.createElement("script");
-  script.src = WEB_APP_URL + "?deleteId="+id+"&callback="+cb+"&_="+new Date().getTime();
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(r){ status.innerHTML="<span style='color:red'>Video deleted!</span>"; loadVideos(); document.body.removeChild(script); };
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?deleteId="+id+"&callback="+cb+"&_="+new Date().getTime();
   document.body.appendChild(script);
 }
 
 // Initial load
 loadVideos();
+
+// Optional: Auto-refresh every 10s in admin too
+setInterval(loadVideos,10000);
 </script>
 </body>
 </html>
