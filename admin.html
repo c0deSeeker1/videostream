@@ -2,183 +2,60 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin - Manage Videos</title>
+<title>Admin Login</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  background: #f5f5f7;
-}
-.tab {
-  margin-bottom: 20px;
-}
-.tab a {
-  padding: 8px 16px;
-  background: #007bff;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-  margin-right: 10px;
-}
-form {
-  background: #fff;
-  padding: 15px;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  max-width: 600px;
-}
-.form-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.form-row label {
-  width: 120px;
-  font-weight: bold;
-}
-.form-row input {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-#addBtn { background: #28a745; color: #fff; }
-.editBtn { background: #ffc107; color: #000; margin-right: 5px; }
-.deleteBtn { background: #dc3545; color: #fff; }
-#status { margin-top: 10px; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-th { background: #eee; }
+body{font-family:Arial;padding:20px;background:#f5f5f7;}
+form{background:#fff;padding:20px;border-radius:6px;max-width:400px;margin:auto;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+input{width:100%;padding:8px;margin:8px 0;border:1px solid #ccc;border-radius:4px;}
+button{padding:10px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;width:100%;}
+a{display:block;text-align:right;margin-top:10px;color:#007bff;text-decoration:none;}
+#status{margin-top:10px;text-align:center;color:red;}
 </style>
 </head>
 <body>
 
-<script>
-// Password protection
-const password = "admin123"; // change your password here
-let entered = prompt("Enter admin password:");
-if(entered !== password){
-  alert("Incorrect password. Access denied.");
-  document.body.innerHTML = "<h2 style='color:red;'>Access Denied</h2>";
-  throw new Error("Access denied");
-}
-</script>
-
-<h1>Admin - Manage Videos</h1>
-<div class="tab">
-  <a href="index.html">Viewer Page</a>
-</div>
-
-<h3>Add New Video</h3>
-<form id="addForm">
-  <div class="form-row">
-    <label for="title">Video Title:</label>
-    <input type="text" id="title" placeholder="Video Title">
-  </div>
-  <div class="form-row">
-    <label for="url">Video URL:</label>
-    <input type="text" id="url" placeholder="Google Drive or Dropbox share link">
-  </div>
-  <button type="button" id="addBtn">Add Video</button>
+<h2 style="text-align:center;">Admin Login</h2>
+<form id="loginForm">
+  <input type="text" id="username" placeholder="Username" value="admin" required>
+  <input type="password" id="password" placeholder="Password" value="admin" required>
+  <button type="button" id="loginBtn">Login</button>
+  <a href="#" id="forgotBtn">Forgot Password?</a>
+  <div id="status"></div>
 </form>
-<div id="status"></div>
-
-<h3>Existing Videos</h3>
-<div id="videoList">Loading videos...</div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
-const status = document.getElementById("status");
-const videoListDiv = document.getElementById("videoList");
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const status=document.getElementById("status");
 
-// Convert share link to direct link
-function convertToDirectLink(url){
-  if(url.includes("drive.google.com")){
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if(match && match[1]) return "https://drive.google.com/uc?export=download&id="+match[1];
-  }
-  if(url.includes("dropbox.com")) return url.replace("?dl=0","?dl=1");
-  return url;
-}
-
-// Add video
-document.getElementById("addBtn").addEventListener("click", ()=>{
-  let title = document.getElementById("title").value.trim();
-  let url = document.getElementById("url").value.trim();
-  if(!title || !url){ status.innerHTML="<span style='color:red'>Enter both title and URL.</span>"; return; }
-  url = convertToDirectLink(url);
-  const cb="cb"+new Date().getTime();
-  window[cb]=function(r){
-    status.innerHTML="<span style='color:green'>Video added!</span>";
-    document.getElementById("addForm").reset();
-    loadVideos();
-    document.body.removeChild(script);
-  };
-  const script=document.createElement("script");
-  script.src=WEB_APP_URL+"?title="+encodeURIComponent(title)+"&url="+encodeURIComponent(url)+"&callback="+cb+"&_="+new Date().getTime();
-  document.body.appendChild(script);
+// Login
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  const username=document.getElementById("username").value.trim();
+  const password=document.getElementById("password").value.trim();
+  fetch(WEB_APP_URL,{
+    method:"POST",
+    body:new URLSearchParams({action:"login",username, password})
+  })
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success) window.location.href="admin_panel.html"; // redirect to main admin
+    else status.textContent="Incorrect username or password.";
+  })
+  .catch(e=>status.textContent="Error connecting to server.");
 });
 
-// Load videos
-function loadVideos(){
-  const cb="cb"+new Date().getTime();
-  window[cb]=function(data){
-    if(!data || data.length===0){ videoListDiv.innerHTML="<p>No videos yet.</p>"; return; }
-    let html="<table><tr><th>Title</th><th>URL</th><th>Actions</th></tr>";
-    data.forEach(v=>{
-      html+=`<tr>
-        <td>${v.title}</td>
-        <td><a href="${v.direct_url}" target="_blank">Play Link</a></td>
-        <td>
-          <button class="editBtn" onclick="editVideo('${v.id}','${v.title}','${v.original_url}')">Edit</button>
-          <button class="deleteBtn" onclick="deleteVideo('${v.id}')">Delete</button>
-        </td>
-      </tr>`;
-    });
-    html+="</table>";
-    videoListDiv.innerHTML=html;
-  };
-  const script=document.createElement("script");
-  script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
-  document.body.appendChild(script);
-}
-
-// Edit video
-function editVideo(id, oldTitle, oldUrl){
-  const newTitle = prompt("Edit Title:", oldTitle);
-  if(newTitle===null) return;
-  const newUrlRaw = prompt("Edit Video URL:", oldUrl);
-  if(newUrlRaw===null) return;
-  const newUrl = convertToDirectLink(newUrlRaw);
-  const cb="cb"+new Date().getTime();
-  window[cb]=function(r){ status.innerHTML="<span style='color:green'>Video updated!</span>"; loadVideos(); document.body.removeChild(script); };
-  const script=document.createElement("script");
-  script.src=WEB_APP_URL+"?editId="+id+"&title="+encodeURIComponent(newTitle)+"&url="+encodeURIComponent(newUrl)+"&callback="+cb+"&_="+new Date().getTime();
-  document.body.appendChild(script);
-}
-
-// Delete video
-function deleteVideo(id){
-  if(!confirm("Delete this video?")) return;
-  const cb="cb"+new Date().getTime();
-  window[cb]=function(r){ status.innerHTML="<span style='color:red'>Video deleted!</span>"; loadVideos(); document.body.removeChild(script); };
-  const script=document.createElement("script");
-  script.src=WEB_APP_URL+"?deleteId="+id+"&callback="+cb+"&_="+new Date().getTime();
-  document.body.appendChild(script);
-}
-
-// Initial load
-loadVideos();
-
-// Auto-refresh table every 10 seconds
-setInterval(loadVideos, 10000);
+// Forgot password
+document.getElementById("forgotBtn").addEventListener("click",()=>{
+  fetch(WEB_APP_URL,{
+    method:"POST",
+    body:new URLSearchParams({action:"forgot"})
+  })
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success) status.textContent="Password sent to your email.";
+    else status.textContent="Error sending email.";
+  });
+});
 </script>
+
 </body>
 </html>
