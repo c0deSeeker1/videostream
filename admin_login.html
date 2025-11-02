@@ -4,92 +4,155 @@
 <meta charset="UTF-8">
 <title>Admin Login</title>
 <style>
-body{font-family:Arial;background:#f5f5f7;padding:20px;display:flex;justify-content:center;align-items:center;height:100vh;}
-form{background:#fff;padding:20px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:350px;}
-h2{text-align:center;margin-top:0;}
-.form-row{margin-bottom:15px;display:flex;flex-direction:column;}
-label{font-weight:bold;margin-bottom:5px;}
-input{padding:8px 10px;border:1px solid #ccc;border-radius:4px;width:100%;}
-button{width:100%;padding:10px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;}
-button:hover{background:#0056b3;}
-.password-container{position:relative;}
-.eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:#666;}
-#status{margin-top:10px;text-align:center;}
-.forgot{margin-top:5px;text-align:right;}
-.forgot a{text-decoration:none;color:#007bff;}
-.forgot a:hover{color:#0056b3;}
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f5f5f7;
+}
+.top-tab {
+  text-align: right;
+  margin-bottom: 20px;
+}
+.top-tab a {
+  padding: 8px 16px;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 400px;
+  margin: auto;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.form-row label {
+  font-weight: bold;
+  text-align: right;
+}
+.form-row input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #007bff;
+  color: #fff;
+}
+.password-container {
+  position: relative;
+}
+.eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+}
+#errorMsg {
+  margin-top: 10px;
+  color: red;
+}
 </style>
 </head>
 <body>
 
+<div class="top-tab">
+  <a href="index.html">Viewer Page</a>
+</div>
+
+<h2 style="text-align:center;">Admin Login</h2>
 <form id="loginForm">
-<h2>Admin Login</h2>
-<div class="form-row">
-  <label>Username:</label>
-  <input type="text" id="username" placeholder="Enter username" value="">
-</div>
-<div class="form-row">
-  <label>Password:</label>
-  <div class="password-container">
-    <input type="password" id="password" placeholder="Enter password" value="">
-    <span class="eye" id="eyePass">&#128065;</span>
+  <div class="form-row">
+    <label for="username">Username:</label>
+    <input type="text" id="username" placeholder="Username" autocomplete="off">
   </div>
-</div>
-<div class="forgot"><a href="#" id="forgotPass">Forgot Password?</a></div>
-<button type="button" id="loginBtn">Login</button>
-<div id="status"></div>
+  <div class="form-row">
+    <label for="password">Password:</label>
+    <div class="password-container">
+      <input type="password" id="password" placeholder="Password" autocomplete="off">
+      <span class="eye" id="eye">&#128065;</span>
+    </div>
+  </div>
+  <button type="button" id="loginBtn">Login</button>
+  <div id="errorMsg"></div>
+  <div style="text-align:right;margin-top:10px;">
+    <a href="#" id="forgotPassLink">Forgot Password?</a>
+  </div>
 </form>
 
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const usernameInput=document.getElementById("username");
+const passwordInput=document.getElementById("password");
+const errorMsg=document.getElementById("errorMsg");
 
-// Eye icon long press to unmask password
-const passwordInput = document.getElementById("password");
-const eye = document.getElementById("eyePass");
-eye.onmousedown = ()=> passwordInput.type="text";
-eye.onmouseup = eye.onmouseleave = ()=> passwordInput.type="password";
+// Eye toggle
+const eye=document.getElementById("eye");
+eye.onmousedown=()=>passwordInput.type="text";
+eye.onmouseup=eye.onmouseleave=()=>passwordInput.type="password";
 
-// Login functionality
-document.getElementById("loginBtn").onclick = ()=>{
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const status = document.getElementById("status");
-
-  if(username !== "admin"){
-    status.innerHTML="<span style='color:red'>Invalid username</span>";
+// Login function
+function doLogin(){
+  const username=usernameInput.value.trim();
+  const password=passwordInput.value.trim();
+  if(!username || !password){
+    errorMsg.textContent="Enter username and password.";
     return;
   }
-  if(!password){
-    status.innerHTML="<span style='color:red'>Enter password</span>";
-    return;
-  }
-
-  fetch(WEB_APP_URL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"loginCheck",password})
-  })
-  .then(r=>r.json())
-  .then(j=>{
-    if(j.success){
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(r){
+    if(r.success){
+      sessionStorage.setItem("admin_logged_in","true");
       window.location.href="admin_panel.html";
-    } else {
-      status.innerHTML="<span style='color:red'>Wrong password</span>";
+    }else{
+      errorMsg.textContent="Invalid username or password.";
     }
-  });
-};
+    document.body.removeChild(script);
+  };
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?action=login&username="+encodeURIComponent(username)+"&password="+encodeURIComponent(password)+"&callback="+cb+"&_="+new Date().getTime();
+  document.body.appendChild(script);
+}
+
+// Button click
+document.getElementById("loginBtn").addEventListener("click", doLogin);
+
+// Enter key submits
+document.getElementById("loginForm").addEventListener("keypress",(e)=>{
+  if(e.key==="Enter") { e.preventDefault(); doLogin(); }
+});
 
 // Forgot password
-document.getElementById("forgotPass").onclick = ()=>{
-  fetch(WEB_APP_URL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"forgotPass"})
-  })
-  .then(r=>r.json())
-  .then(j=>{
-    alert("Password request sent. Check your email.");
-  });
+document.getElementById("forgotPassLink").onclick = () => {
+  const username = usernameInput.value.trim();
+  if(!username){ alert("Enter your username to recover password."); return; }
+  const cb = "cb"+new Date().getTime();
+  window[cb] = function(r){
+    alert(r.success ? "Password sent to your email." : "Username not found.");
+    document.body.removeChild(script);
+  };
+  const script = document.createElement("script");
+  script.src = WEB_APP_URL+"?action=forgot&username="+encodeURIComponent(username)+"&callback="+cb+"&_="+new Date().getTime();
+  document.body.appendChild(script);
 };
 </script>
 
