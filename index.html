@@ -13,24 +13,21 @@ h1{font-size:24px;margin-bottom:10px;}
 <body>
 <h1>Video Viewer</h1>
 <div id="videoList">Loading videos...</div>
-
-<!-- Admin link -->
 <a href="admin.html" id="adminLink">Admin</a>
 
-<!-- Load your Web App JSON directly as a script -->
-<script src="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec"></script>
-
 <script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
 const listContainer = document.getElementById("videoList");
 
-function displayVideos(){
-  if(!window.json || window.json.length === 0){
+// This function will be called by JSONP from Apps Script
+function showVideos(data){
+  window.json = data; // save globally if needed
+  if(!data || data.length === 0){
     listContainer.innerHTML = "<p>No videos uploaded yet.</p>";
     return;
   }
-
   listContainer.innerHTML = "";
-  window.json.forEach(v=>{
+  data.forEach(v=>{
     const div = document.createElement("div");
     div.innerHTML = `
       <h3>${v.title}</h3>
@@ -43,8 +40,10 @@ function displayVideos(){
   });
 }
 
-// Wait a tiny bit for the script to load
-setTimeout(displayVideos, 100);
+// Load JSONP via script tag
+const script = document.createElement("script");
+script.src = WEB_APP_URL + "?callback=showVideos";
+document.body.appendChild(script);
 </script>
 </body>
 </html>
