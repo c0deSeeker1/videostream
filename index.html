@@ -1,284 +1,100 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Custom HTML5 Video Player</title>
+<meta charset="utf-8">
+<title>Video Viewer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  :root {
-    --bg: #0b0d10;
-    --card: #0f1720;
-    --accent: #3b82f6;
-    --muted: #94a3b8;
-    --glass: rgba(255,255,255,0.03);
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(180deg,#071021 0%, #021018 100%);
-    color: #e6eef8;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    padding: 24px;
-  }
-  .player {
-    width: 100%;
-    max-width: 980px;
-    background: linear-gradient(180deg,var(--card), #091018);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(2,6,23,0.6), inset 0 -2px 12px rgba(0,0,0,0.5);
-  }
-
-  /* Video */
-  .video-wrap {
-    position: relative;
-    background: #000;
-  }
-  video {
-    display: block;
-    width: 100%;
-    height: auto;
-    background: #000;
-  }
-
-  /* Controls */
-  .controls {
-    padding: 12px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 12px;
-    align-items: center;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  }
-
-  .left-controls, .right-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  button.btn {
-    background: var(--glass);
-    border: 1px solid rgba(255,255,255,0.04);
-    color: var(--muted);
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  button.btn:hover { color: white; border-color: rgba(59,130,246,0.7); }
-
-  .progress {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 6px;
-    position: relative;
-    cursor: pointer;
-  }
-  .progress > .bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), rgba(59,130,246,0.6));
-    width: 0%;
-    border-radius: 6px;
-  }
-
-  .time {
-    font-variant-numeric: tabular-nums;
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  .volume {
-    width: 120px;
-    display: flex; gap: 8px; align-items: center;
-  }
-  .vol-range {
-    width: 100%;
-  }
-
-  /* make player touch friendly */
-  @media (hover: none) {
-    button.btn { padding: 12px; font-size: 16px; }
-  }
-
-  /* poster overlay play button */
-  .overlay-play {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-  }
-  .overlay-play .big {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    background: rgba(11,14,21,0.55);
-    display: grid;
-    place-items: center;
-    pointer-events: auto;
-    cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.06);
-  }
-  .overlay-play svg { fill: white; width: 36px; height: 36px; opacity: 0.95; }
+body{margin:0;font-family:Arial,sans-serif;background:#000;color:#fff;}
+.container{max-width:980px;margin:20px auto;padding:10px;}
+.playlist{background:rgba(255,255,255,0.03);padding:10px;border-radius:10px;margin-bottom:12px;max-height:220px;overflow:auto;border:1px solid rgba(255,255,255,0.04);}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;cursor:pointer;}
+.list-item:hover{background:rgba(255,255,255,0.02);}
+.title{font-size:15px;}
+.small{font-size:12px;color:#888;}
+video{width:100%;max-height:62vh;border-radius:8px;background:#000;display:block;}
+.controls{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.pill{background:rgba(0,0,0,0.4);padding:6px 10px;border-radius:999px;font-size:13px;color:#ddd;}
+.admin-link{position:fixed;right:16px;bottom:16px;background:rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,0.04);}
+.empty{padding:36px;text-align:center;color:#888;border-radius:10px;background:rgba(255,255,255,0.02);}
+.active{outline:2px solid rgba(11,121,255,0.2);}
 </style>
 </head>
 <body>
-
-<div class="player" id="player">
-  <div class="video-wrap">
-    <!-- Replace src with your legally-authorized video URL or relative file path -->
-    <video id="video" preload="metadata" poster="" playsinline>
-      <source src="https://1drv.ms/v/c/b113fd1c526d2b81/EWBVo13Y6pRGniTKTG0r0PcBaGHhOuCa0bZyPEQPQF3Pww" type="video/mp4">
-      <!-- Add additional <source> tags for other formats if you have them -->
-      Your browser does not support the HTML5 Video element.
-    </video>
-
-    <!-- big overlay play (visible when paused) -->
-    <div class="overlay-play" id="overlay">
-      <div class="big" id="bigPlay" title="Play">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </div>
-    </div>
-  </div>
-
-  <div class="controls" id="controls">
-    <div class="left-controls">
-      <button class="btn" id="playPause" title="Play / Pause">Play</button>
-      <div class="time" id="time">0:00 / 0:00</div>
-    </div>
-
-    <div>
-      <div class="progress" id="progress" aria-label="Seek">
-        <div class="bar" id="bar"></div>
-      </div>
-    </div>
-
-    <div class="right-controls">
-      <div class="volume">
-        <button class="btn" id="mute" title="Mute / Unmute">🔊</button>
-        <input class="vol-range" id="volume" type="range" min="0" max="1" step="0.01" value="1">
-      </div>
-      <button class="btn" id="fs" title="Fullscreen">⤢</button>
-      <!-- Only show download if you have rights to distribute the file -->
-      <a id="downloadLink" class="btn" href="#" download style="text-decoration:none; color:inherit;">Download</a>
-    </div>
-  </div>
+<div class="container">
+<div id="playlist" class="playlist"></div>
+<div id="playerWrap">
+<div id="emptyMsg" class="empty" style="display:none">No video available. Admin can add via <a href="admin.html" style="color:#0b79ff">Admin</a>.</div>
+<video id="player" controls playsinline webkit-playsinline></video>
+<div class="controls" style="display:none" id="playerInfo">
+<div class="pill" id="currentTitle"></div>
+<div style="flex:1"></div>
+<div class="small" id="currentAdded"></div>
 </div>
+</div>
+</div>
+<a class="admin-link" href="admin.html">Admin</a>
 
 <script>
-(function(){
-  const video = document.getElementById('video');
-  const playPause = document.getElementById('playPause');
-  const bigPlay = document.getElementById('bigPlay');
-  const overlay = document.getElementById('overlay');
-  const timeLabel = document.getElementById('time');
-  const progress = document.getElementById('progress');
-  const bar = document.getElementById('bar');
-  const volume = document.getElementById('volume');
-  const muteBtn = document.getElementById('mute');
-  const fsBtn = document.getElementById('fs');
-  const downloadLink = document.getElementById('downloadLink');
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const playlistEl = document.getElementById('playlist');
+const player = document.getElementById('player');
+const emptyMsg = document.getElementById('emptyMsg');
+const playerInfo = document.getElementById('playerInfo');
+const currentTitle = document.getElementById('currentTitle');
+const currentAdded = document.getElementById('currentAdded');
 
-  // Update download link (only valid if CORS and host allow it)
-  const src = (video.querySelector('source') || {}).src || '';
-  if (src) {
-    downloadLink.href = src;
-    // Note: If file is on a host that blocks cross-origin or prevents downloads, this may not work.
-  } else {
-    downloadLink.style.display = 'none';
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function fetchVideos(){
+  try{
+    const resp = await fetch(WEB_APP_URL);
+    const arr = await resp.json();
+    return arr.sort((a,b)=> new Date(b.addedAt)-new Date(a.addedAt)); // newest first
+  } catch(err){ console.error(err); return []; }
+}
+
+function renderPlaylist(arr){
+  playlistEl.innerHTML='';
+  if(arr.length===0){
+    emptyMsg.style.display='block';
+    player.style.display='none';
+    playerInfo.style.display='none';
+    return;
   }
-
-  function formatTime(s) {
-    if (!isFinite(s)) return '0:00';
-    const min = Math.floor(s/60);
-    const sec = Math.floor(s%60).toString().padStart(2,'0');
-    return `${min}:${sec}`;
-  }
-
-  video.addEventListener('loadedmetadata', () => {
-    timeLabel.textContent = `${formatTime(0)} / ${formatTime(video.duration)}`;
+  emptyMsg.style.display='none';
+  player.style.display='block';
+  arr.forEach(it=>{
+    const item = document.createElement('div');
+    item.className='list-item';
+    item.dataset.id=it.id;
+    item.innerHTML=`<div>
+                      <div class="title">${escapeHtml(it.title)}</div>
+                      <div class="small">${escapeHtml(it.original_url)}</div>
+                    </div>
+                    <div class="small">${new Date(it.addedAt).toLocaleString()}</div>`;
+    item.addEventListener('click', ()=>{ playVideo(it); document.querySelectorAll('.list-item').forEach(e=>e.classList.remove('active')); item.classList.add('active'); item.scrollIntoView({behavior:'smooth',block:'nearest'}); });
+    playlistEl.appendChild(item);
   });
+  playVideo(arr[0]); // auto play newest
+  setTimeout(()=>{ const el = playlistEl.querySelector(`[data-id="${arr[0].id}"]`); if(el){el.classList.add('active');} },80);
+}
 
-  video.addEventListener('timeupdate', () => {
-    const pct = (video.currentTime / video.duration) * 100 || 0;
-    bar.style.width = pct + '%';
-    timeLabel.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-  });
+function playVideo(item){
+  player.src=item.direct_url;
+  player.load();
+  player.play().catch(()=>{});
+  playerInfo.style.display='flex';
+  currentTitle.textContent=item.title;
+  currentAdded.textContent=new Date(item.addedAt).toLocaleString();
+  emptyMsg.style.display='none';
+}
 
-  playPause.addEventListener('click', togglePlay);
-  bigPlay.addEventListener('click', togglePlay);
-  overlay.addEventListener('click', () => { if (video.paused) togglePlay(); });
-
-  function togglePlay() {
-    if (video.paused) {
-      video.play().catch(e => console.warn('Playback failed:', e));
-    } else {
-      video.pause();
-    }
-    updatePlayButton();
-  }
-
-  function updatePlayButton() {
-    playPause.textContent = video.paused ? 'Play' : 'Pause';
-    overlay.style.display = video.paused ? 'grid' : 'none';
-  }
-
-  video.addEventListener('play', updatePlayButton);
-  video.addEventListener('pause', updatePlayButton);
-  video.addEventListener('ended', updatePlayButton);
-
-  // Seek
-  progress.addEventListener('click', (e) => {
-    const rect = progress.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const pct = x / rect.width;
-    video.currentTime = pct * video.duration;
-  });
-
-  // Volume & mute
-  volume.addEventListener('input', () => {
-    video.volume = parseFloat(volume.value);
-    if (video.volume === 0) muteBtn.textContent = '🔈';
-    else muteBtn.textContent = '🔊';
-  });
-
-  muteBtn.addEventListener('click', () => {
-    video.muted = !video.muted;
-    muteBtn.textContent = video.muted ? '🔈' : '🔊';
-    if (video.muted) volume.value = 0;
-    else volume.value = video.volume || 1;
-  });
-
-  // Fullscreen
-  fsBtn.addEventListener('click', () => {
-    const player = document.getElementById('player');
-    if (!document.fullscreenElement) {
-      player.requestFullscreen?.() || player.webkitRequestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
-  });
-
-  // keyboard accessibility (Space toggles play)
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
-      e.preventDefault();
-      togglePlay();
-    }
-    if (e.key === 'f') fsBtn.click();
-  });
-
-  // initial
-  updatePlayButton();
+/* initialize */
+(async function(){
+  const videos = await fetchVideos();
+  renderPlaylist(videos);
 })();
 </script>
-
 </body>
 </html>
-
-
