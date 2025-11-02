@@ -1,59 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Admin - Video List</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Admin - Add Video</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f5f5f7;margin:0;padding:20px;color:#111;}
-.wrap{max-width:900px;margin:0 auto;}
-h1{margin-bottom:12px;}
-label{display:block;margin-top:10px;font-weight:600;font-size:14px;}
-input[type="text"], input[type="url"]{width:100%;padding:10px;margin-top:6px;border-radius:6px;border:1px solid #ccc;box-sizing:border-box;}
-button{padding:10px 14px;margin-top:12px;border-radius:8px;border:0;background:#0b79ff;color:white;cursor:pointer;}
-button.secondary{background:#6c757d;margin-left:6px;}
-.note{font-size:13px;color:#555;margin-top:8px;}
+body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f7;}
+input,button{padding:6px 10px;margin:5px 0;width:100%;}
+button{background:#28a745;color:#fff;border:none;border-radius:4px;}
+#status{margin-top:10px;}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>Admin — Add Video</h1>
-<label for="title">Title</label>
-<input id="title" type="text" placeholder="Enter title">
-<label for="url">Cloud URL (Google Drive, Dropbox, OneDrive)</label>
-<input id="url" type="url" placeholder="Paste link here">
-<div>
+<h1>Admin - Add Video</h1>
+<label>Video Title:</label>
+<input type="text" id="title" placeholder="Video Title">
+<label>Video URL (direct link):</label>
+<input type="text" id="url" placeholder="Video URL">
+
 <button id="addBtn">Add Video</button>
-</div>
-<div class="note"><a href="index.html">Go to Viewer Page</a></div>
-</div>
+<div id="status"></div>
 
 <script>
-const WEB_APP_URL = "YOUR_WEB_APP_URL"; // ← replace with your Web App URL
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
+const status = document.getElementById("status");
 
-const titleInput = document.getElementById('title');
-const urlInput = document.getElementById('url');
-const addBtn = document.getElementById('addBtn');
+document.getElementById("addBtn").addEventListener("click", ()=>{
+  const title = document.getElementById("title").value.trim();
+  const url = document.getElementById("url").value.trim();
 
-addBtn.addEventListener('click', async ()=>{
-  const title = titleInput.value.trim();
-  const url = urlInput.value.trim();
-  if(!title || !url){ alert("Please enter both title and URL"); return; }
-
-  try{
-    const fetchUrl = `${WEB_APP_URL}?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
-    const resp = await fetch(fetchUrl);
-    const data = await resp.json(); // ✅ now valid JSON
-    if(data.status==="success"){
-      alert("Saved! Video added.");
-      titleInput.value=''; urlInput.value='';
-    } else {
-      alert("Error saving video");
-    }
-  } catch(err){
-    console.error(err);
-    alert("Error: "+err.message);
+  if(!title || !url){
+    status.innerHTML = "<span style='color:red'>Please enter both title and URL.</span>";
+    return;
   }
+
+  // Add video by opening new script tag (bypasses CORS)
+  const script = document.createElement("script");
+  const callbackName = "cb" + new Date().getTime();
+  window[callbackName] = function(response){
+    status.innerHTML = "<span style='color:green'>Video added successfully!</span>";
+    document.body.removeChild(script);
+  };
+  script.src = WEB_APP_URL + "?title=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(url) + "&callback=" + callbackName;
+  document.body.appendChild(script);
 });
 </script>
 </body>
