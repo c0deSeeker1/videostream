@@ -9,48 +9,246 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 h1{margin:0;}
 a.admin-link{padding:6px 12px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;}
 a.admin-link:hover{background:#0056b3;}
-.video-card{background:#fff;padding:10px;margin:10px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-video{width:100%;max-width:600px;border-radius:4px;}
+
+/* Video List Styling */
+#videoList h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.video-title {
+    cursor: pointer;
+    color: #007bff; /* Make the title look like a link */
+    text-decoration: underline;
+    display: block;
+    padding: 8px 10px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+.video-title:hover {
+    background: #e9ecef;
+    color: #0056b3;
+}
+
+/* Video Player Area Styling */
+#videoPlayerContainer {
+    margin-top: 20px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    border-radius: 4px;
+    background: #000; /* Add black background for video loading */
+}
+.video-container > * { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+}
+.player-message {
+    margin-top: 8px;
+    color: #555;
+    font-size: 0.9em;
+    padding: 5px 0;
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Video Viewer</h1>
-  <a href="admin_login.html" class="admin-link">Admin Login</a>
+  <h1>Video Viewer</h1>
+  <a href="admin_login.html" class="admin-link">Admin Login</a>
 </header>
 
+<div id="videoPlayerContainer">
+    <p>Select a video title from the list below to start playback.</p>
+</div>
+
+<hr>
+
+<h3>Video List</h3>
 <div id="videoList">Loading videos...</div>
 
 <script>
+// IMPORTANT: Keep this URL for both list loading and the streaming proxy logic.
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzq22Fzcm_w-IAAiDpqx2TQKkHJjKq7fnlP-5IdtrgwFG7Wo2HaDNFxro7tZKIoMol0/exec";
-const videoListDiv=document.getElementById("videoList");
 
-// JSONP callback
-function loadVideos(){
-  const cb="cb"+new Date().getTime();
-  window[cb]=function(data){
-    if(!data || data.length===0){ videoListDiv.innerHTML="<p>No videos uploaded yet.</p>"; return; }
-    let html="";
-    data.forEach(v=>{
-      html+=`<div class="video-card">
-        <h3>${v.title}</h3>
-        <video controls>
-          <source src="${v.direct_url}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      </div>`;
-    });
-    videoListDiv.innerHTML=html;
-  };
-  const script=document.createElement("script");
-  script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
-  document.body.appendChild(script);
+const videoListDiv = document.getElementById("videoList");
+const playerContainer = document.getElementById("videoPlayerContainer");
+
+// --- Helper Functions ---
+
+/**
+ * Extracts the Google Drive File ID from a URL.
+ */
+function getFileId(url) {
+    if (!url) return null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
 }
 
-// Initial load
+/**
+ * Generates the robust HTML video player with HTML5 primary and Iframe secondary fallback.
+ * This is based on the logic from your successful troubleshooting code.
+ */
+function getPlayableEmbed(originalUrl, directUrl, title) {
+    const fileId = getFileId(originalUrl);
+    let html = `<h3>Now Playing: ${title}</h3>`;
+    let videoSourceUrl = directUrl; // Default to directUrl for non-Drive files
+
+    if (fileId) {
+        // If it's a Drive file, use the Apps Script proxy URL (recommended for stability)
+        videoSourceUrl = `${WEB_APP_URL}?streamFileId=${fileId}`;
+    }
+
+    if (!videoSourceUrl) {
+        return html + "<p>Error: Could not determine a video source URL.</p>";
+    }
+
+    // --- HTML Player Structure ---
+    
+    // 1. HTML5 Video Attempt (Primary)
+    html += `<div class="video-container" id="playerWrapper">
+                <video id="gdriveVideo" controls playsinline preload="metadata" style="background:#000;">
+                    <source id="videoSource" src="${videoSourceUrl}" type="video/mp4">
+                    Your browser does not support the HTML5 Video element.
+                </video>
+                <iframe id="gdriveIframe" 
+                    src="https://drive.google.com/file/d/${fileId}/preview" 
+                    frameborder="0" 
+                    allow="autoplay; encrypted-media" 
+                    style="display:none;" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <div class="player-message" id="playbackStatus">Attempting direct stream...</div>`;
+            
+    // --- Integration of Event Listeners ---
+    
+    // We attach the listeners to the playerContainer after it's injected into the DOM.
+    setTimeout(() => {
+        const vid = document.getElementById('gdriveVideo');
+        const iframe = document.getElementById('gdriveIframe');
+        const status = document.getElementById('playbackStatus');
+        
+        if (!vid) return;
+
+        function showIframeFallback(reason) {
+            console.warn('Using iframe fallback:', reason);
+            vid.style.display = 'none';
+            iframe.style.display = 'block';
+            status.innerHTML = `Playback failed (${reason}). Switched to Google Drive viewer.`;
+        }
+        
+        let metadataTimeout = setTimeout(() => {
+            showIframeFallback('Stream access blocked or timed out');
+        }, 8000); // 8-second timeout
+
+        vid.addEventListener('loadedmetadata', () => {
+            clearTimeout(metadataTimeout);
+            status.innerHTML = 'Video loaded successfully. Use player controls.';
+            vid.play().catch(err => {
+                // Handle autoplay block by the browser
+                status.innerHTML = 'Video loaded, but **Autoplay was blocked** by your browser. Click play on the controls.';
+            });
+        });
+
+        vid.addEventListener('error', (e) => {
+            clearTimeout(metadataTimeout);
+            const code = e && e.target && e.target.error ? e.target.error.code : 'unknown';
+            // Specific check for network errors (code 4) or incompatible format errors (code 3)
+            if (code === 4 || code === 3) { 
+                showIframeFallback(`Codec/Format error (Code ${code}).`);
+            } else {
+                showIframeFallback(`Video error (Code ${code}).`);
+            }
+        });
+
+        // Clean up timeout if element is removed from DOM (less critical but good practice)
+        playerContainer.addEventListener('DOMNodeRemoved', () => {
+            clearTimeout(metadataTimeout);
+        });
+
+    }, 0); // Use setTimeout(..., 0) to ensure the player elements are in the DOM before we try to find them
+
+    return html;
+}
+
+// --- Dynamic List Loading Logic ---
+
+/**
+ * Function executed when a video title is clicked to load the player.
+ */
+function playVideo(originalUrl, directUrl, title) {
+    // Inject the player and run the initialization logic from getPlayableEmbed
+    playerContainer.innerHTML = getPlayableEmbed(originalUrl, directUrl, title);
+}
+
+/**
+ * Attaches a 'click' event listener to every video title span.
+ */
+function setupClickHandlers() {
+    const videoTitles = document.querySelectorAll('.video-title');
+    
+    videoTitles.forEach(span => {
+        span.addEventListener('click', function() {
+            const title = this.getAttribute('data-title');
+            const originalUrl = this.getAttribute('data-original');
+            const directUrl = this.getAttribute('data-direct');
+            
+            playVideo(originalUrl, directUrl, title);
+        });
+    });
+}
+
+// Load videos list via JSONP
+function loadVideos(){
+  const cb="cb"+new Date().getTime();
+  window[cb]=function(data){
+    if(!data || data.length === 0){
+      videoListDiv.innerHTML="<p>No videos uploaded yet.</p>";
+      return;
+    }
+    let html="";
+    data.forEach(v=>{
+      const originalUrl = v.original_url || v.url || ""; 
+      const directUrl = v.direct_url || "";
+      const title = v.title || "Untitled Video";
+
+      // Using data attributes and HTML escaping for safety
+      html+=`<div class="video-card">
+                <span class="video-title" 
+                      data-title="${title.replace(/"/g, '&quot;')}"
+                      data-original="${originalUrl.replace(/"/g, '&quot;')}" 
+                      data-direct="${directUrl.replace(/"/g, '&quot;')}" 
+                  >
+                  ${title}
+                </span>
+              </div>`;
+    });
+    
+    videoListDiv.innerHTML=html;
+    setupClickHandlers(); 
+  };
+  
+  const script=document.createElement("script");
+  script.src=WEB_APP_URL+"?callback="+cb+"&_="+new Date().getTime();
+  document.body.appendChild(script);
+}
+
+// Initial load of the video list
 loadVideos();
-setInterval(loadVideos,10000); // auto-refresh every 10s
 </script>
 </body>
 </html>
