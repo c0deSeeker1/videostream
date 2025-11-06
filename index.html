@@ -2,43 +2,70 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Video Viewer</title>
+<title>Pro Media Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial;background:#f5f5f7;padding:20px;}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-h1{margin:0;}
-a.admin-link{padding:6px 12px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;}
-a.admin-link:hover{background:#0056b3;}
+/* --- Global & Base Styling --- */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: #121212; /* Darker, modern background */
+    color: #E0E0E0; /* Light text for contrast */
+    padding: 30px;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #333; /* Subtle separator */
+}
+h1 {
+    margin: 0;
+    color: #00AEEF; /* Accent color */
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+h3 {
+    color: #F5F5F5;
+    font-weight: 400;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+hr {
+    border: none;
+    border-top: 1px solid #333;
+    margin: 30px 0;
+}
 
-/* Video List Styling */
-#videoList h3 {
-    margin-top: 0;
-    margin-bottom: 5px;
+/* --- Admin Link Button --- */
+a.admin-link {
+    padding: 8px 16px;
+    background: #00AEEF; /* Blue Accent */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 20px; /* Pill shape for modern look */
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
-.video-title {
-    cursor: pointer;
-    color: #007bff; /* Make the title look like a link */
-    text-decoration: underline;
-    display: block;
-    padding: 8px 10px;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    margin-bottom: 5px;
-    font-size: 1.1em;
-}
-.video-title:hover {
-    background: #e9ecef;
-    color: #0056b3;
+a.admin-link:hover {
+    background: #008CC9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 174, 239, 0.2);
 }
 
-/* Video Player Area Styling */
+/* --- Video Player Area Styling --- */
 #videoPlayerContainer {
     margin-top: 20px;
-    background: #fff;
-    padding: 15px;
-    border-radius: 6px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background: #1E1E1E; /* Slightly lighter dark background for the container */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Stronger shadow */
+}
+#videoPlayerContainer > p {
+    color: #AAAAAA;
+    text-align: center;
+    padding: 40px;
 }
 .video-container {
     position: relative;
@@ -47,7 +74,7 @@ a.admin-link:hover{background:#0056b3;}
     overflow: hidden;
     max-width: 100%;
     border-radius: 4px;
-    background: #000; /* Add black background for video loading */
+    background: #000;
 }
 .video-container > * { 
     position: absolute; 
@@ -57,18 +84,55 @@ a.admin-link:hover{background:#0056b3;}
     height: 100%; 
 }
 .player-message {
-    margin-top: 8px;
-    color: #555;
+    margin-top: 10px;
+    color: #AAAAAA;
     font-size: 0.9em;
     padding: 5px 0;
+}
+
+/* --- Video List Styling - Major Change --- */
+#videoList {
+    display: grid;
+    /* Create a responsive grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 15px; /* Spacing between cards */
+    padding-top: 5px;
+}
+.video-card {
+    /* The card itself is the container for the title span */
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    background: #252525;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.video-card:hover {
+    transform: translateY(-3px); /* Lift effect on hover */
+    box-shadow: 0 6px 12px rgba(0, 174, 239, 0.3); /* Accent glow on hover */
+}
+.video-title {
+    cursor: pointer;
+    color: #F5F5F5; 
+    text-decoration: none; /* No underline */
+    display: block;
+    padding: 15px;
+    font-size: 1em;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* ... for long titles */
+}
+.video-title:hover {
+    color: #00AEEF; /* Accent color on hover */
+    background: #2E2E2E; /* Slight background change on hover */
 }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Video Viewer</h1>
-  <a href="admin_login.html" class="admin-link">Admin Login</a>
+  <h1>📺 Pro Media Viewer</h1>
+  <a href="admin_login.html" class="admin-link">Admin Portal</a>
 </header>
 
 <div id="videoPlayerContainer">
@@ -77,7 +141,7 @@ a.admin-link:hover{background:#0056b3;}
 
 <hr>
 
-<h3>Video List</h3>
+<h3>Video Library</h3>
 <div id="videoList">Loading videos...</div>
 
 <script>
@@ -100,20 +164,19 @@ function getFileId(url) {
 
 /**
  * Generates the robust HTML video player with HTML5 primary and Iframe secondary fallback.
- * This is based on the logic from your successful troubleshooting code.
  */
 function getPlayableEmbed(originalUrl, directUrl, title) {
     const fileId = getFileId(originalUrl);
     let html = `<h3>Now Playing: ${title}</h3>`;
-    let videoSourceUrl = directUrl; // Default to directUrl for non-Drive files
+    let videoSourceUrl = directUrl; 
 
     if (fileId) {
-        // If it's a Drive file, use the Apps Script proxy URL (recommended for stability)
+        // Use the Apps Script proxy URL for Drive files
         videoSourceUrl = `${WEB_APP_URL}?streamFileId=${fileId}`;
     }
 
     if (!videoSourceUrl) {
-        return html + "<p>Error: Could not determine a video source URL.</p>";
+        return html + "<p class='player-message'>Error: Could not determine a video source URL.</p>";
     }
 
     // --- HTML Player Structure ---
@@ -132,11 +195,10 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
                     allowfullscreen>
                 </iframe>
             </div>
-            <div class="player-message" id="playbackStatus">Attempting direct stream...</div>`;
+            <div class="player-message" id="playbackStatus">Attempting secure direct stream...</div>`;
             
     // --- Integration of Event Listeners ---
     
-    // We attach the listeners to the playerContainer after it's injected into the DOM.
     setTimeout(() => {
         const vid = document.getElementById('gdriveVideo');
         const iframe = document.getElementById('gdriveIframe');
@@ -148,18 +210,17 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
             console.warn('Using iframe fallback:', reason);
             vid.style.display = 'none';
             iframe.style.display = 'block';
-            status.innerHTML = `Playback failed (${reason}). Switched to Google Drive viewer.`;
+            status.innerHTML = `<span style='color:orange;'>Playback failed (${reason}). Switched to Google Drive viewer.</span>`;
         }
         
         let metadataTimeout = setTimeout(() => {
             showIframeFallback('Stream access blocked or timed out');
-        }, 8000); // 8-second timeout
+        }, 8000); 
 
         vid.addEventListener('loadedmetadata', () => {
             clearTimeout(metadataTimeout);
             status.innerHTML = 'Video loaded successfully. Use player controls.';
             vid.play().catch(err => {
-                // Handle autoplay block by the browser
                 status.innerHTML = 'Video loaded, but **Autoplay was blocked** by your browser. Click play on the controls.';
             });
         });
@@ -167,39 +228,39 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
         vid.addEventListener('error', (e) => {
             clearTimeout(metadataTimeout);
             const code = e && e.target && e.target.error ? e.target.error.code : 'unknown';
-            // Specific check for network errors (code 4) or incompatible format errors (code 3)
             if (code === 4 || code === 3) { 
-                showIframeFallback(`Codec/Format error (Code ${code}).`);
+                showIframeFallback(`Codec/Network error (Code ${code}).`);
             } else {
                 showIframeFallback(`Video error (Code ${code}).`);
             }
         });
 
-        // Clean up timeout if element is removed from DOM (less critical but good practice)
         playerContainer.addEventListener('DOMNodeRemoved', () => {
             clearTimeout(metadataTimeout);
         });
 
-    }, 0); // Use setTimeout(..., 0) to ensure the player elements are in the DOM before we try to find them
+    }, 0); 
 
     return html;
 }
 
-// --- Dynamic List Loading Logic ---
+// --- Dynamic List Loading Logic (Unchanged but included for completeness) ---
 
 /**
  * Function executed when a video title is clicked to load the player.
  */
 function playVideo(originalUrl, directUrl, title) {
-    // Inject the player and run the initialization logic from getPlayableEmbed
     playerContainer.innerHTML = getPlayableEmbed(originalUrl, directUrl, title);
+    // Scroll to the player to ensure it's in view on mobile/smaller screens
+    playerContainer.scrollIntoView({ behavior: 'smooth' }); 
 }
 
 /**
  * Attaches a 'click' event listener to every video title span.
  */
 function setupClickHandlers() {
-    const videoTitles = document.querySelectorAll('.video-title');
+    // Select all elements with the specific class within the container
+    const videoTitles = videoListDiv.querySelectorAll('.video-title');
     
     videoTitles.forEach(span => {
         span.addEventListener('click', function() {
@@ -217,7 +278,7 @@ function loadVideos(){
   const cb="cb"+new Date().getTime();
   window[cb]=function(data){
     if(!data || data.length === 0){
-      videoListDiv.innerHTML="<p>No videos uploaded yet.</p>";
+      videoListDiv.innerHTML="<p style='color:#777;text-align:center;'>No videos uploaded yet. Check back soon!</p>";
       return;
     }
     let html="";
@@ -226,7 +287,7 @@ function loadVideos(){
       const directUrl = v.direct_url || "";
       const title = v.title || "Untitled Video";
 
-      // Using data attributes and HTML escaping for safety
+      // Ensure data attributes are properly encoded
       html+=`<div class="video-card">
                 <span class="video-title" 
                       data-title="${title.replace(/"/g, '&quot;')}"
