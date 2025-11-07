@@ -90,7 +90,7 @@ a.admin-link:hover {
     padding: 5px 0;
 }
 
-/* --- Video List Styling - Major Change --- */
+/* --- Video List Styling --- */
 #videoList {
     display: grid;
     /* Create a responsive grid layout */
@@ -99,7 +99,6 @@ a.admin-link:hover {
     padding-top: 5px;
 }
 .video-card {
-    /* The card itself is the container for the title span */
     border-radius: 6px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -197,7 +196,7 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
             </div>
             <div class="player-message" id="playbackStatus">Attempting secure direct stream...</div>`;
             
-    // --- Integration of Event Listeners ---
+    // --- Integration of Event Listeners (Automatic Fallback Logic) ---
     
     setTimeout(() => {
         const vid = document.getElementById('gdriveVideo');
@@ -209,30 +208,31 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
         function showIframeFallback(reason) {
             console.warn('Using iframe fallback:', reason);
             vid.style.display = 'none';
-            iframe.style.display = 'block';
-            status.innerHTML = `<span style='color:orange;'>Playback failed (${reason}). Switched to Google Drive viewer.</span>`;
+            // Show the iframe, which is configured to attempt autoplay
+            iframe.style.display = 'block'; 
+            status.innerHTML = `<span style='color:orange;'>Playback failed (${reason}). **Switched to Google Drive viewer (automatic playback attempted).**</span>`;
         }
         
+        // Timeout to catch issues where the video doesn't load metadata in time
         let metadataTimeout = setTimeout(() => {
             showIframeFallback('Stream access blocked or timed out');
         }, 8000); 
 
         vid.addEventListener('loadedmetadata', () => {
             clearTimeout(metadataTimeout);
-            status.innerHTML = 'Video loaded successfully. Use player controls.';
+            status.innerHTML = 'Video loaded successfully. Attempting to play...';
+            
+            // CRITICAL: Catch Autoplay Block and Fallback
             vid.play().catch(err => {
-                status.innerHTML = 'Video loaded, but **Autoplay was blocked** by your browser. Click play on the controls.';
+                showIframeFallback('Autoplay blocked by browser policy');
             });
         });
 
         vid.addEventListener('error', (e) => {
             clearTimeout(metadataTimeout);
             const code = e && e.target && e.target.error ? e.target.error.code : 'unknown';
-            if (code === 4 || code === 3) { 
-                showIframeFallback(`Codec/Network error (Code ${code}).`);
-            } else {
-                showIframeFallback(`Video error (Code ${code}).`);
-            }
+            // CRITICAL: Immediately Fallback on Stream Error
+            showIframeFallback(`Stream/Codec error (Code ${code}).`);
         });
 
         playerContainer.addEventListener('DOMNodeRemoved', () => {
@@ -244,7 +244,7 @@ function getPlayableEmbed(originalUrl, directUrl, title) {
     return html;
 }
 
-// --- Dynamic List Loading Logic (Unchanged but included for completeness) ---
+// --- Dynamic List Loading Logic ---
 
 /**
  * Function executed when a video title is clicked to load the player.
@@ -259,7 +259,6 @@ function playVideo(originalUrl, directUrl, title) {
  * Attaches a 'click' event listener to every video title span.
  */
 function setupClickHandlers() {
-    // Select all elements with the specific class within the container
     const videoTitles = videoListDiv.querySelectorAll('.video-title');
     
     videoTitles.forEach(span => {
@@ -287,7 +286,7 @@ function loadVideos(){
       const directUrl = v.direct_url || "";
       const title = v.title || "Untitled Video";
 
-      // Ensure data attributes are properly encoded
+      // Using data attributes and HTML escaping for safety
       html+=`<div class="video-card">
                 <span class="video-title" 
                       data-title="${title.replace(/"/g, '&quot;')}"
